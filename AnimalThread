@@ -1,0 +1,44 @@
+class AnimalThread extends Thread {
+    private String animalName;
+    private int meters;
+    private static final int RACE_DISTANCE = 100;
+
+    public AnimalThread(String name, int priority) {
+        this.animalName = name;
+        this.setPriority(priority);
+        this.meters = 0;
+    }
+
+    @Override
+    public void run() {
+        System.out.println(animalName + " начинает гонку!");
+
+        while (meters < RACE_DISTANCE) {
+            int step = (int)(Math.random() * 10) + 1;
+            meters += step;
+
+            if (meters > RACE_DISTANCE) {
+                meters = RACE_DISTANCE;
+            }
+
+            System.out.println(animalName + ": " + meters + " метров");
+
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                System.out.println(animalName + " был прерван!");
+                return;
+            }
+        }
+
+        System.out.println("*** " + animalName + " финишировал! ***");
+    }
+
+    public int getMeters() {
+        return meters;
+    }
+
+    public String getAnimalName() {
+        return animalName;
+    }
+}
