@@ -1,0 +1,82 @@
+public class RabbitAndTurtle {
+    private static final int RACE_DISTANCE = 100;
+    private static final int CHECK_INTERVAL = 500;
+
+    public static void main(String[] args) {
+        System.out.println("ГОНКА ЗАЙЦА И ЧЕРЕПАХИ");
+        System.out.println("Дистанция: " + RACE_DISTANCE + " метров");
+
+        AnimalThread rabbit = new AnimalThread("Заяц", Thread.NORM_PRIORITY);
+        AnimalThread turtle = new AnimalThread("Черепаха", Thread.NORM_PRIORITY);
+
+        rabbit.start();
+        turtle.start();
+
+        Thread monitorThread = new Thread(() -> {
+            while (rabbit.isAlive() && turtle.isAlive()) {
+                try {
+                    Thread.sleep(CHECK_INTERVAL);
+
+                    int rabbitMeters = rabbit.getMeters();
+                    int turtleMeters = turtle.getMeters();
+
+                    System.out.println("\nСТАТУС ГОНКИ");
+                    System.out.println("Заяц: " + rabbitMeters + " м");
+                    System.out.println("Черепаха: " + turtleMeters + " м");
+
+                    if (rabbitMeters > turtleMeters) {
+                        if (turtle.getPriority() < Thread.MAX_PRIORITY) {
+                            turtle.setPriority(turtle.getPriority() + 1);
+                            System.out.println("Черепаха ускоряется! Приоритет: " + turtle.getPriority());
+                        }
+                        if (rabbit.getPriority() > Thread.MIN_PRIORITY) {
+                            rabbit.setPriority(rabbit.getPriority() - 1);
+                            System.out.println("Заяц замедляется! Приоритет: " + rabbit.getPriority());
+                        }
+                    } else if (turtleMeters > rabbitMeters) {
+                        if (rabbit.getPriority() < Thread.MAX_PRIORITY) {
+                            rabbit.setPriority(rabbit.getPriority() + 1);
+                            System.out.println("Заяц ускоряется! Приоритет: " + rabbit.getPriority());
+                        }
+                        if (turtle.getPriority() > Thread.MIN_PRIORITY) {
+                            turtle.setPriority(turtle.getPriority() - 1);
+                            System.out.println("Черепаха замедляется! Приоритет: " + turtle.getPriority());
+                        }
+                    } else {
+                        rabbit.setPriority(Thread.NORM_PRIORITY);
+                        turtle.setPriority(Thread.NORM_PRIORITY);
+                        System.out.println("Гонка равная! Приоритеты сброшены к нормальным");
+                    }
+
+                    System.out.println("-------------------\n");
+
+                } catch (InterruptedException e) {
+                    System.out.println("Мониторинг прерван!");
+                    return;
+                }
+            }
+        });
+
+        monitorThread.start();
+
+        try {
+            rabbit.join();
+            turtle.join();
+            monitorThread.interrupt();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        System.out.println("\nРЕЗУЛЬТАТЫ ГОНКИ");
+        System.out.println("Заяц прошел: " + rabbit.getMeters() + " метров");
+        System.out.println("Черепаха прошла: " + turtle.getMeters() + " метров");
+
+        if (rabbit.getMeters() == RACE_DISTANCE && turtle.getMeters() == RACE_DISTANCE) {
+            System.out.println("ничья");
+        } else if (rabbit.getMeters() == RACE_DISTANCE) {
+            System.out.println("победил заяц");
+        } else {
+            System.out.println("победила черепаха");
+        }
+    }
+}
